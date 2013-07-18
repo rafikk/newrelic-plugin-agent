@@ -294,8 +294,12 @@ class NewRelicPluginAgent(clihelper.Controller):
                      name, plugin, config, poll_interval)
         instance_name = "%s:%s" % (name, config.get('name','unnamed'))
         obj = plugin(config, poll_interval, self.derive_last_interval.get(instance_name))
-        obj.poll()
-        self.publish_queue.put((instance_name, obj.values(), obj.derive_last_interval))                                                       
+        try:
+            obj.poll()
+            self.publish_queue.put((instance_name, obj.values(), obj.derive_last_interval))
+        except Exception, e:
+            LOGGER.error('Exception during plugin polling')
+            LOGGER.exception(e)
 
     @property
     def wake_interval(self):
